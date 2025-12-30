@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hindi Colors Cards</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  :root {
+    --bg: #2b2b2b;
+    --ui: #eaeaea;
+    --shadow: rgba(0,0,0,0.45);
+  }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    background: var(--bg);
+    color: white;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .screen {
+    display: none;
+    text-align: center;
+  }
+
+  .screen.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    margin-bottom: 10px;
+  }
+
+  p {
+    opacity: 0.8;
+  }
+
+  button {
+    background: var(--ui);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px var(--shadow);
+  }
+
+  button:active {
+    transform: scale(0.96);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Card */
+  .card-wrapper {
+    perspective: 1100px;
+    margin: auto;
+  }
+
+  .card {
+    width: 290px;
+    height: 180px;
+    border-radius: 26px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(.4,.2,.2,1);
+    box-shadow: 0 30px 55px var(--shadow);
+    cursor: pointer;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+  }
+
+  .card.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 26px;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .back {
+    transform: rotateY(180deg);
+  }
+
+  .controls {
+    margin-top: 26px;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <h1>Hindi Colors 🎨</h1>
+  <p>Tap the card to reveal the Hindi word</p>
+  <button onclick="startGame()">Start Learning</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <div class="card-wrapper">
+    <div id="card" class="card" onclick="flipCard()">
+      <div id="front" class="face"></div>
+      <div id="back" class="face back"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="prevCard()">← Previous</button>
+    <button onclick="nextCard()">Next →</button>
+  </div>
+</div>
+
+<!-- END -->
+<div id="end" class="screen">
+  <h1>Session Complete 👏</h1>
+  <button onclick="startGame()">Start Over</button>
+</div>
+
+<script>
+  const COLORS = [
+    { hi: "Laal", color: "#E53935" },
+    { hi: "Neela", color: "#1E88E5" },
+    { hi: "Peela", color: "#FDD835", text: "#000" },
+    { hi: "Hara", color: "#43A047" },
+    { hi: "Safed", color: "#FFFFFF", text: "#000" },
+    { hi: "Kala", color: "#000000" },
+    { hi: "Gulabi", color: "#EC407A" },
+    { hi: "Baingani", color: "#8E24AA" },
+    { hi: "Bhoora", color: "#6D4C41" },
+    { hi: "Narangi", color: "#FB8C00" }
+  ];
+
+  let deck = [];
+  let index = 0;
+  let isFlipped = false;
+  let lock = false;
+
+  function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+  }
+
+  function show(screen) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(screen).classList.add("active");
+  }
+
+  function startGame() {
+    deck = shuffle([...COLORS]);
+    index = 0;
+    show("game");
+    resetAndLoad();
+  }
+
+  function resetAndLoad() {
+    lock = true;
+    const card = document.getElementById("card");
+    card.classList.remove("flipped");
+    isFlipped = false;
+
+    setTimeout(loadCard, 300);
+  }
+
+  function loadCard() {
+    const data = deck[index];
+
+    const front = document.getElementById("front");
+    const back = document.getElementById("back");
+
+    front.style.background = data.color;
+    back.style.background = data.color;
+
+    front.style.color = data.text || "#fff";
+    back.style.color = data.text || "#fff";
+
+    front.innerText = "";
+    back.innerText = data.hi;
+
+    document.getElementById("prevBtn").disabled = index === 0;
+    lock = false;
+  }
+
+  function flipCard() {
+    if (lock) return;
+    isFlipped = !isFlipped;
+    document.getElementById("card").classList.toggle("flipped", isFlipped);
+  }
+
+  function nextCard() {
+    if (index < deck.length - 1) {
+      index++;
+      resetAndLoad();
+    } else {
+      show("end");
+    }
+  }
+
+  function prevCard() {
+    if (index > 0) {
+      index--;
+      resetAndLoad();
+    }
+  }
+</script>
+
+</body>
+</html>
